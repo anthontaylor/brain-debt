@@ -8,7 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	brain "github.com/anthontaylor/brain-debt"
+	"github.com/anthontaylor/brain-debt/inmem"
 	"github.com/anthontaylor/brain-debt/server"
+	"github.com/anthontaylor/brain-debt/user"
+
 	"github.com/go-kit/kit/log"
 )
 
@@ -28,7 +32,16 @@ func main() {
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
-	srv := server.New(log.With(logger, "component", "http"))
+	var (
+		users brain.UserRepository
+	)
+
+	users = inmem.NewUserRepository()
+
+	var us user.Service
+	us = user.NewService(users)
+
+	srv := server.New(us, log.With(logger, "component", "http"))
 
 	errs := make(chan error, 2)
 	go func() {
