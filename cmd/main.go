@@ -8,9 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	brain "github.com/anthontaylor/brain-debt"
 	"github.com/anthontaylor/brain-debt/inmem"
-	"github.com/anthontaylor/brain-debt/server"
 	"github.com/anthontaylor/brain-debt/user"
 
 	"github.com/go-kit/kit/log"
@@ -40,13 +41,21 @@ func main() {
 
 	var us user.Service
 	us = user.NewService(users)
+	us = user.NewLoggingService(log.With(logger, "component", "user"), us)
 
-	srv := server.New(us, log.With(logger, "component", "http"))
+	httpLogger := log.With(logger, "component", "http")
+
+	mux := http.NewServeMux()
+
+	mux.Handle("/user/v1/", user.MakeHandler(us, httpLogger))
+
+	http.Handle("/", accessControl(mux))
+	http.Handle("/metrics", promhttp.Handler())
 
 	errs := make(chan error, 2)
 	go func() {
 		logger.Log("transport", "http", "address", *httpAddr, "msg", "listening")
-		errs <- http.ListenAndServe(*httpAddr, srv)
+		errs <- http.ListenAndServe(*httpAddr, nil)
 	}()
 	go func() {
 		c := make(chan os.Signal, 1)
@@ -55,6 +64,20 @@ func main() {
 	}()
 
 	logger.Log("terminated", <-errs)
+}
+
+func accessControl(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		h.ServeHTTP(w, r)
+	})
 }
 
 func envString(env, fallback string) string {
