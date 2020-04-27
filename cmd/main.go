@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -39,9 +41,26 @@ func main() {
 
 	users = inmem.NewUserRepository()
 
+	fieldKeys := []string{"method"}
+
 	var us user.Service
 	us = user.NewService(users)
 	us = user.NewLoggingService(log.With(logger, "component", "user"), us)
+	us = user.NewInstrumentingService(
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "user_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		us,
+	)
 
 	httpLogger := log.With(logger, "component", "http")
 
