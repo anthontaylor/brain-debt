@@ -34,10 +34,26 @@ func MakeHandler(us Service, logger kitlog.Logger) http.Handler {
 		opts...,
 	)
 
+	updateUserHandler := kithttp.NewServer(
+		makeUpdateUserEndpoint(us),
+		decodeUpdateUserRequest,
+		encodeResponse,
+		opts...,
+	)
+
+	deleteUserHandler := kithttp.NewServer(
+		makeDeleteUserEndpoint(us),
+		decodeDeleteUserRequest,
+		encodeResponse,
+		opts...,
+	)
+
 	r := mux.NewRouter()
 
 	r.Handle("/user/v1/", addUserHandler).Methods("POST")
 	r.Handle("/user/v1/{id}", getUserHandler).Methods("GET")
+	r.Handle("/user/v1/{id}", updateUserHandler).Methods("PUT")
+	r.Handle("/user/v1/{id}", deleteUserHandler).Methods("DELETE")
 
 	return r
 }
@@ -63,7 +79,35 @@ func decodeGetUserRequest(_ context.Context, r *http.Request) (interface{}, erro
 	if !ok {
 		return nil, errBadRoute
 	}
-	return getUserRequest{ID: brain.UserID(id)}, nil
+	bID := brain.UserID(id)
+	return getUserRequest{ID: &bID}, nil
+}
+
+func decodeUpdateUserRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, errBadRoute
+	}
+	var body struct {
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		return nil, err
+	}
+	bID := brain.UserID(id)
+	return updateUserRequest{ID: &bID, FirstName: body.FirstName, LastName: body.LastName}, nil
+}
+
+func decodeDeleteUserRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		return nil, errBadRoute
+	}
+	bID := brain.UserID(id)
+	return deleteUserRequest{ID: &bID}, nil
 }
 
 func encodeResponse(ctx context.Context, w http.ResponseWriter, response interface{}) error {
@@ -83,6 +127,8 @@ type errorer interface {
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	switch err {
+	case brain.ErrUnknownUser:
+		w.WriteHeader(http.StatusNotFound)
 	case ErrInvalidArgument:
 		w.WriteHeader(http.StatusBadRequest)
 	default:
