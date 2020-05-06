@@ -50,10 +50,10 @@ func MakeHandler(us Service, logger kitlog.Logger) http.Handler {
 
 	r := mux.NewRouter()
 
-	r.Handle("/user/v1/", addUserHandler).Methods("POST")
-	r.Handle("/user/v1/{id}", getUserHandler).Methods("GET")
-	r.Handle("/user/v1/{id}", updateUserHandler).Methods("PUT")
-	r.Handle("/user/v1/{id}", deleteUserHandler).Methods("DELETE")
+	r.Handle("/user/", addUserHandler).Methods("POST")
+	r.Handle("/user/{id}", getUserHandler).Methods("GET")
+	r.Handle("/user/{id}", updateUserHandler).Methods("PUT")
+	r.Handle("/user/{id}", deleteUserHandler).Methods("DELETE")
 
 	return r
 }

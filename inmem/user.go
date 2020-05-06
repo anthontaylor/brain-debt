@@ -12,6 +12,12 @@ type userRepository struct {
 	users map[brain.UserID]*brain.User
 }
 
+func NewUserRepository() brain.UserRepository {
+	return &userRepository{
+		users: make(map[brain.UserID]*brain.User),
+	}
+}
+
 func (r *userRepository) Add(u *brain.User) (*brain.UserID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -47,10 +53,4 @@ func (r *userRepository) Delete(id *brain.UserID) error {
 		return nil
 	}
 	return brain.ErrUnknownUser
-}
-
-func NewUserRepository() brain.UserRepository {
-	return &userRepository{
-		users: make(map[brain.UserID]*brain.User),
-	}
 }
