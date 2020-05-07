@@ -21,7 +21,8 @@ type addUserResponse struct {
 func makeAddUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addUserRequest)
-		id, err := s.Add(brain.User{req.FirstName, req.LastName})
+		user := brain.User{FirstName: req.FirstName, LastName: req.LastName}
+		id, err := s.Add(user)
 		if err != nil {
 			return addUserResponse{Err: err}, err
 		}
@@ -57,7 +58,7 @@ type updateUserRequest struct {
 }
 
 type updateUserResponse struct {
-	ID        *brain.UserID `json:"id",omitempty`
+	ID        *brain.UserID `json:"id,omitempty"`
 	FirstName string        `json:"first_name,omitempty"`
 	LastName  string        `json:"last_name,omitempty"`
 	Err       error         `json:"error,omitempty"`
