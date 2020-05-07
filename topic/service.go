@@ -24,14 +24,14 @@ func NewService(topic brain.TopicRepository) Service {
 }
 
 func (s *service) Add(id *brain.UserID, name string) (*brain.TopicID, error) {
-	if id == nil || name == "" {
+	if id == nil || *id == "" || name == "" {
 		return nil, ErrInvalidArgument
 	}
 	return s.topic.Add(id, name)
 }
 
 func (s *service) Get(id *brain.UserID) ([]brain.Topic, error) {
-	if id == nil {
+	if id == nil || *id == "" {
 		return nil, ErrInvalidArgument
 	}
 	return s.topic.Get(id)
