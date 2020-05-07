@@ -19,6 +19,10 @@ type service struct {
 	users brain.UserRepository
 }
 
+func NewService(users brain.UserRepository) Service {
+	return &service{users: users}
+}
+
 func (s *service) Add(user brain.User) (*brain.UserID, error) {
 	if user.FirstName == "" || user.LastName == "" {
 		return nil, ErrInvalidArgument
@@ -45,8 +49,4 @@ func (s *service) Delete(id *brain.UserID) error {
 		return ErrInvalidArgument
 	}
 	return s.users.Delete(id)
-}
-
-func NewService(users brain.UserRepository) Service {
-	return &service{users: users}
 }

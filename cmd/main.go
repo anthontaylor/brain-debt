@@ -14,6 +14,7 @@ import (
 
 	brain "github.com/anthontaylor/brain-debt"
 	"github.com/anthontaylor/brain-debt/inmem"
+	"github.com/anthontaylor/brain-debt/topic"
 	"github.com/anthontaylor/brain-debt/user"
 
 	"github.com/go-kit/kit/log"
@@ -36,10 +37,12 @@ func main() {
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
 	var (
-		users brain.UserRepository
+		users  brain.UserRepository
+		topics brain.TopicRepository
 	)
 
 	users = inmem.NewUserRepository()
+	topics = inmem.NewTopicRepository()
 
 	fieldKeys := []string{"method"}
 
@@ -62,11 +65,31 @@ func main() {
 		us,
 	)
 
+	var tp topic.Service
+	tp = topic.NewService(topics)
+	tp = topic.NewLoggingService(log.With(logger, "component", "topic"), tp)
+	tp = topic.NewInstrumentingService(
+		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+			Namespace: "api",
+			Subsystem: "topic_service",
+			Name:      "request_count",
+			Help:      "Number of requests received.",
+		}, fieldKeys),
+		kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+			Namespace: "api",
+			Subsystem: "topic_service",
+			Name:      "request_latency_microseconds",
+			Help:      "Total duration of requests in microseconds.",
+		}, fieldKeys),
+		tp,
+	)
+
 	httpLogger := log.With(logger, "component", "http")
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/user/v1/", user.MakeHandler(us, httpLogger))
+	mux.Handle("/user/", user.MakeHandler(us, httpLogger))
+	mux.Handle("/topics/", topic.MakeHandler(tp, httpLogger))
 
 	http.Handle("/", accessControl(mux))
 	http.Handle("/metrics", promhttp.Handler())
