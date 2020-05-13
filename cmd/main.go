@@ -8,16 +8,21 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/go-kit/kit/log"
+	"github.com/go-kit/kit/log/level"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
+
 	stdprometheus "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/uber/jaeger-client-go"
+	jaegerconfig "github.com/uber/jaeger-client-go/config"
+	jaegermetrics "github.com/uber/jaeger-lib/metrics"
 
 	brain "github.com/anthontaylor/brain-debt"
 	"github.com/anthontaylor/brain-debt/inmem"
 	"github.com/anthontaylor/brain-debt/topic"
+	//	"github.com/anthontaylor/brain-debt/tracing"
 	"github.com/anthontaylor/brain-debt/user"
-
-	"github.com/go-kit/kit/log"
 )
 
 const (
@@ -26,8 +31,9 @@ const (
 
 func main() {
 	var (
-		addr     = envString("PORT", defaultPort)
-		httpAddr = flag.String("http.addr", ":"+addr, "HTTP listen address")
+		addr       = envString("PORT", defaultPort)
+		httpAddr   = flag.String("http.addr", ":"+addr, "HTTP listen address")
+		jaegerAddr = flag.String("jaeger", "jaeger:5775", "Jaeger host:port")
 	)
 
 	flag.Parse()
@@ -35,6 +41,36 @@ func main() {
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
+
+	{
+		if *jaegerAddr != "" {
+			transport, err := jaeger.NewUDPTransport(*jaegerAddr, 0)
+			if err != nil {
+				level.Error(logger).Log("err", err)
+				os.Exit(1)
+			}
+			cfg := jaegerconfig.Configuration{
+				Sampler: &jaegerconfig.SamplerConfig{
+					Type:  jaeger.SamplerTypeConst,
+					Param: 1.0,
+				},
+			}
+			closer, err := cfg.InitGlobalTracer(
+				"brain_debt",
+				jaegerconfig.Logger(logAdapter{logger}),
+				jaegerconfig.Metrics(jaegermetrics.NullFactory),
+				jaegerconfig.Reporter(jaeger.NewRemoteReporter(transport)),
+			)
+			if err != nil {
+				level.Error(logger).Log("err", err)
+				os.Exit(1)
+			}
+			defer closer.Close()
+			level.Info(logger).Log("tracing", "enabled", "jaeger", *jaegerAddr)
+		} else {
+			level.Info(logger).Log("tracing", "disabled")
+		}
+	}
 
 	var (
 		users  brain.UserRepository
@@ -49,6 +85,7 @@ func main() {
 	var us user.Service
 	us = user.NewService(users)
 	us = user.NewLoggingService(log.With(logger, "component", "user"), us)
+	us = user.NewTracingService(us)
 	us = user.NewInstrumentingService(
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",

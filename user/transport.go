@@ -27,6 +27,7 @@ func MakeHandler(us Service, logger kitlog.Logger) http.Handler {
 		encodeResponse,
 		opts...,
 	)
+
 	getUserHandler := kithttp.NewServer(
 		makeGetUserEndpoint(us),
 		decodeGetUserRequest,

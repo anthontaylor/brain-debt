@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o ./out/brain-debt ./cmd/main.go
+RUN go build -o ./out/brain-debt ./cmd/main.go ./cmd/misc.go 
 
 ENTRYPOINT ./out/brain-debt
 

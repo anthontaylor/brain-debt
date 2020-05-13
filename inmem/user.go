@@ -1,6 +1,7 @@
 package inmem
 
 import (
+	"context"
 	"sync"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -18,7 +19,7 @@ func NewUserRepository() brain.UserRepository {
 	}
 }
 
-func (r *userRepository) Add(u *brain.User) (*brain.UserID, error) {
+func (r *userRepository) Add(ctx context.Context, u *brain.User) (*brain.UserID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	userID := brain.UserID(uuid.New().String())
@@ -26,7 +27,7 @@ func (r *userRepository) Add(u *brain.User) (*brain.UserID, error) {
 	return &userID, nil
 }
 
-func (r *userRepository) Find(id *brain.UserID) (*brain.User, error) {
+func (r *userRepository) Find(ctx context.Context, id *brain.UserID) (*brain.User, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if val, ok := r.users[*id]; ok {
@@ -35,7 +36,7 @@ func (r *userRepository) Find(id *brain.UserID) (*brain.User, error) {
 	return nil, brain.ErrUnknownUser
 }
 
-func (r *userRepository) Update(id *brain.UserID, u brain.User) (*brain.User, error) {
+func (r *userRepository) Update(ctx context.Context, id *brain.UserID, u brain.User) (*brain.User, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, ok := r.users[*id]; ok {
@@ -45,7 +46,7 @@ func (r *userRepository) Update(id *brain.UserID, u brain.User) (*brain.User, er
 	return nil, brain.ErrUnknownUser
 }
 
-func (r *userRepository) Delete(id *brain.UserID) error {
+func (r *userRepository) Delete(ctx context.Context, id *brain.UserID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if _, ok := r.users[*id]; ok {

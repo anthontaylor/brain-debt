@@ -22,7 +22,7 @@ func makeAddUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addUserRequest)
 		user := brain.User{FirstName: req.FirstName, LastName: req.LastName}
-		id, err := s.Add(user)
+		id, err := s.Add(ctx, user)
 		if err != nil {
 			return addUserResponse{Err: err}, err
 		}
@@ -43,7 +43,7 @@ type getUserResponse struct {
 func makeGetUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getUserRequest)
-		user, err := s.Find(req.ID)
+		user, err := s.Find(ctx, req.ID)
 		if err != nil {
 			return getUserResponse{Err: err}, err
 		}
@@ -67,7 +67,7 @@ type updateUserResponse struct {
 func makeUpdateUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(updateUserRequest)
-		user, err := s.Update(req.ID, brain.User{FirstName: req.FirstName, LastName: req.LastName})
+		user, err := s.Update(ctx, req.ID, brain.User{FirstName: req.FirstName, LastName: req.LastName})
 		if err != nil {
 			return updateUserResponse{Err: err}, err
 		}
@@ -86,7 +86,7 @@ type deleteUserResponse struct {
 func makeDeleteUserEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(deleteUserRequest)
-		err := s.Delete(req.ID)
+		err := s.Delete(ctx, req.ID)
 		if err != nil {
 			return deleteUserResponse{Err: err}, err
 		}

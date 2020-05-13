@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"time"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -22,34 +23,34 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Add(user brain.User) (*brain.UserID, error) {
+func (s *instrumentingService) Add(ctx context.Context, user brain.User) (*brain.UserID, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "add").Add(1)
 		s.requestLatency.With("method", "add").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Add(user)
+	return s.Service.Add(ctx, user)
 }
 
-func (s *instrumentingService) Find(id *brain.UserID) (user *brain.User, err error) {
+func (s *instrumentingService) Find(ctx context.Context, id *brain.UserID) (user *brain.User, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "find").Add(1)
 		s.requestLatency.With("method", "find").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Find(id)
+	return s.Service.Find(ctx, id)
 }
 
-func (s *instrumentingService) Update(id *brain.UserID, user brain.User) (_ *brain.User, err error) {
+func (s *instrumentingService) Update(ctx context.Context, id *brain.UserID, user brain.User) (_ *brain.User, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "update").Add(1)
 		s.requestLatency.With("method", "update").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Update(id, user)
+	return s.Service.Update(ctx, id, user)
 }
 
-func (s *instrumentingService) Delete(id *brain.UserID) (err error) {
+func (s *instrumentingService) Delete(ctx context.Context, id *brain.UserID) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "delete").Add(1)
 		s.requestLatency.With("method", "delete").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Delete(id)
+	return s.Service.Delete(ctx, id)
 }
