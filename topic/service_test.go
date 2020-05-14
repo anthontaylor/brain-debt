@@ -1,6 +1,7 @@
 package topic
 
 import (
+	"context"
 	"testing"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -25,9 +26,10 @@ func TestAddTopic(t *testing.T) {
 	mockService := mock_topic.NewMockService(ctrl)
 	for _, test := range successTests {
 		topic_id := brain.TopicID(uuid.New().String())
-		mockService.EXPECT().Add(gomock.Any(), gomock.Any()).Return(&topic_id, nil)
+		ctx := context.Background()
+		mockService.EXPECT().Add(ctx, gomock.Any(), gomock.Any()).Return(&topic_id, nil)
 		topics := NewService(mockService)
-		got, err := topics.Add(&test.user_id, test.name)
+		got, err := topics.Add(ctx, &test.user_id, test.name)
 		assert.Same(t, got, &topic_id)
 		assert.Equal(t, test.err, err)
 	}
@@ -42,9 +44,10 @@ func TestAddTopic(t *testing.T) {
 	}
 
 	for _, test := range failureTests {
-		mockService.EXPECT().Add(gomock.Any(), gomock.Any()).MaxTimes(0)
+		ctx := context.Background()
+		mockService.EXPECT().Add(ctx, gomock.Any(), gomock.Any()).MaxTimes(0)
 		topics := NewService(mockService)
-		got, err := topics.Add(&test.user_id, test.name)
+		got, err := topics.Add(ctx, &test.user_id, test.name)
 		assert.Equal(t, test.err, err)
 		assert.Nil(t, got)
 	}
@@ -59,9 +62,10 @@ func TestAddTopic(t *testing.T) {
 	}
 
 	for _, test := range nilTests {
-		mockService.EXPECT().Add(gomock.Any(), gomock.Any()).MaxTimes(0)
+		ctx := context.Background()
+		mockService.EXPECT().Add(ctx, gomock.Any(), gomock.Any()).MaxTimes(0)
 		topics := NewService(mockService)
-		got, err := topics.Add(test.user_id, test.name)
+		got, err := topics.Add(ctx, test.user_id, test.name)
 		assert.Equal(t, test.err, err)
 		assert.Nil(t, got)
 	}
@@ -80,9 +84,10 @@ func TestGetTopic(t *testing.T) {
 
 	mockService := mock_topic.NewMockService(ctrl)
 	for _, test := range successTests {
-		mockService.EXPECT().Get(gomock.Any()).Return(test.topics, nil)
+		ctx := context.Background()
+		mockService.EXPECT().Get(ctx, gomock.Any()).Return(test.topics, nil)
 		topics := NewService(mockService)
-		got, err := topics.Get(&test.user_id)
+		got, err := topics.Get(ctx, &test.user_id)
 		assert.Equal(t, got, test.topics)
 		assert.Equal(t, test.err, err)
 	}
@@ -96,9 +101,10 @@ func TestGetTopic(t *testing.T) {
 	}
 
 	for _, test := range failureTests {
-		mockService.EXPECT().Get(gomock.Any()).MaxTimes(0)
+		ctx := context.Background()
+		mockService.EXPECT().Get(ctx, gomock.Any()).MaxTimes(0)
 		topics := NewService(mockService)
-		_, err := topics.Get(&test.user_id)
+		_, err := topics.Get(ctx, &test.user_id)
 		assert.Equal(t, test.err, err)
 	}
 }

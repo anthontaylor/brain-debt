@@ -21,7 +21,6 @@ import (
 	brain "github.com/anthontaylor/brain-debt"
 	"github.com/anthontaylor/brain-debt/inmem"
 	"github.com/anthontaylor/brain-debt/topic"
-	//	"github.com/anthontaylor/brain-debt/tracing"
 	"github.com/anthontaylor/brain-debt/user"
 )
 
@@ -40,6 +39,7 @@ func main() {
 
 	var logger log.Logger
 	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	logger = level.NewFilter(logger, level.AllowAll())
 	logger = log.With(logger, "ts", log.DefaultTimestampUTC)
 
 	{
@@ -56,7 +56,7 @@ func main() {
 				},
 			}
 			closer, err := cfg.InitGlobalTracer(
-				"brain_debt",
+				"brain-debt",
 				jaegerconfig.Logger(logAdapter{logger}),
 				jaegerconfig.Metrics(jaegermetrics.NullFactory),
 				jaegerconfig.Reporter(jaeger.NewRemoteReporter(transport)),
@@ -105,6 +105,7 @@ func main() {
 	var tp topic.Service
 	tp = topic.NewService(topics)
 	tp = topic.NewLoggingService(log.With(logger, "component", "topic"), tp)
+	tp = topic.NewTracingService(tp)
 	tp = topic.NewInstrumentingService(
 		kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
 			Namespace: "api",
@@ -133,7 +134,7 @@ func main() {
 
 	errs := make(chan error, 2)
 	go func() {
-		logger.Log("transport", "http", "address", *httpAddr, "msg", "listening")
+		level.Info(logger).Log("transport", "http", "address", *httpAddr, "msg", "listening")
 		errs <- http.ListenAndServe(*httpAddr, nil)
 	}()
 	go func() {
@@ -142,7 +143,7 @@ func main() {
 		errs <- fmt.Errorf("%s", <-c)
 	}()
 
-	logger.Log("terminated", <-errs)
+	level.Error(logger).Log("terminated", <-errs)
 }
 
 func accessControl(h http.Handler) http.Handler {

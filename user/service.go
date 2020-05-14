@@ -9,6 +9,8 @@ import (
 
 var ErrInvalidArgument = errors.New("invalid argument")
 
+//go:generate mockgen -destination=mocks/service.go -package=user_mock github.com/anthontaylor/brain-debt/user Service
+
 type Service interface {
 	Add(ctx context.Context, user brain.User) (*brain.UserID, error)
 	Find(ctx context.Context, id *brain.UserID) (*brain.User, error)

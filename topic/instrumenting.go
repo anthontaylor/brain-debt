@@ -1,6 +1,7 @@
 package topic
 
 import (
+	"context"
 	"time"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -22,34 +23,34 @@ func NewInstrumentingService(counter metrics.Counter, latency metrics.Histogram,
 	}
 }
 
-func (s *instrumentingService) Add(id *brain.UserID, name string) (*brain.TopicID, error) {
+func (s *instrumentingService) Add(ctx context.Context, id *brain.UserID, name string) (*brain.TopicID, error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "add").Add(1)
 		s.requestLatency.With("method", "add").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Add(id, name)
+	return s.Service.Add(ctx, id, name)
 }
 
-func (s *instrumentingService) Get(id *brain.UserID) (user []brain.Topic, err error) {
+func (s *instrumentingService) Get(ctx context.Context, id *brain.UserID) (user []brain.Topic, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "find").Add(1)
 		s.requestLatency.With("method", "find").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Get(id)
+	return s.Service.Get(ctx, id)
 }
 
-func (s *instrumentingService) Update(id *brain.UserID, topic *brain.Topic) (_ *brain.Topic, err error) {
+func (s *instrumentingService) Update(ctx context.Context, id *brain.UserID, topic *brain.Topic) (_ *brain.Topic, err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "update").Add(1)
 		s.requestLatency.With("method", "update").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Update(id, topic)
+	return s.Service.Update(ctx, id, topic)
 }
 
-func (s *instrumentingService) Delete(id *brain.UserID, topicID *brain.TopicID) (err error) {
+func (s *instrumentingService) Delete(ctx context.Context, id *brain.UserID, topicID *brain.TopicID) (err error) {
 	defer func(begin time.Time) {
 		s.requestCount.With("method", "delete").Add(1)
 		s.requestLatency.With("method", "delete").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return s.Service.Delete(id, topicID)
+	return s.Service.Delete(ctx, id, topicID)
 }
