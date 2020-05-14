@@ -21,7 +21,7 @@ type addTopicResponse struct {
 func makeAddTopicEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(addTopicRequest)
-		id, err := s.Add(req.ID, req.Name)
+		id, err := s.Add(ctx, req.ID, req.Name)
 		if err != nil {
 			return addTopicResponse{Err: err}, err
 		}
@@ -41,7 +41,7 @@ type getTopicsResponse struct {
 func makeGetTopicsEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getTopicsRequest)
-		topics, err := s.Get(req.ID)
+		topics, err := s.Get(ctx, req.ID)
 		if err != nil {
 			return getTopicsResponse{Err: err}, err
 		}
@@ -62,7 +62,7 @@ type updateTopicResponse struct {
 func makeUpdateTopicEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(updateTopicRequest)
-		topic, err := s.Update(req.UserID, req.Topic)
+		topic, err := s.Update(ctx, req.UserID, req.Topic)
 		if err != nil {
 			return updateTopicResponse{Err: err}, err
 		}
@@ -82,7 +82,7 @@ type deleteTopicResponse struct {
 func makeDeleteTopicEndpoint(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(deleteTopicRequest)
-		err := s.Delete(req.UserID, req.TopicID)
+		err := s.Delete(ctx, req.UserID, req.TopicID)
 		if err != nil {
 			return deleteTopicResponse{Err: err}, err
 		}

@@ -1,6 +1,7 @@
 package topic
 
 import (
+	"context"
 	"time"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -16,7 +17,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger: logger, Service: s}
 }
 
-func (s *loggingService) Add(id *brain.UserID, name string) (_ *brain.TopicID, err error) {
+func (s *loggingService) Add(ctx context.Context, id *brain.UserID, name string) (_ *brain.TopicID, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "add",
@@ -26,10 +27,10 @@ func (s *loggingService) Add(id *brain.UserID, name string) (_ *brain.TopicID, e
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Add(id, name)
+	return s.Service.Add(ctx, id, name)
 }
 
-func (s *loggingService) Get(id *brain.UserID) (_ []brain.Topic, err error) {
+func (s *loggingService) Get(ctx context.Context, id *brain.UserID) (_ []brain.Topic, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "find",
@@ -38,10 +39,10 @@ func (s *loggingService) Get(id *brain.UserID) (_ []brain.Topic, err error) {
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Get(id)
+	return s.Service.Get(ctx, id)
 }
 
-func (s *loggingService) Update(id *brain.UserID, topic *brain.Topic) (_ *brain.Topic, err error) {
+func (s *loggingService) Update(ctx context.Context, id *brain.UserID, topic *brain.Topic) (_ *brain.Topic, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "update",
@@ -52,10 +53,10 @@ func (s *loggingService) Update(id *brain.UserID, topic *brain.Topic) (_ *brain.
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Update(id, topic)
+	return s.Service.Update(ctx, id, topic)
 }
 
-func (s *loggingService) Delete(id *brain.UserID, topicID *brain.TopicID) (err error) {
+func (s *loggingService) Delete(ctx context.Context, id *brain.UserID, topicID *brain.TopicID) (err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "delete",
@@ -65,5 +66,5 @@ func (s *loggingService) Delete(id *brain.UserID, topicID *brain.TopicID) (err e
 			"err", err,
 		)
 	}(time.Now())
-	return s.Service.Delete(id, topicID)
+	return s.Service.Delete(ctx, id, topicID)
 }

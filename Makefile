@@ -16,3 +16,6 @@ cover:
 
 docker:
 	docker-compose up --build
+
+mock:
+	go generate ./...

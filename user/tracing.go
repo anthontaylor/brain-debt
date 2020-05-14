@@ -16,7 +16,7 @@ func NewTracingService(s Service) Service {
 }
 
 func (t *tracingService) Add(ctx context.Context, user brain.User) (id *brain.UserID, err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "db_request")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "add_user")
 	defer span.Finish()
 	defer func(begin time.Time) {
 		span.LogKV(
@@ -28,7 +28,7 @@ func (t *tracingService) Add(ctx context.Context, user brain.User) (id *brain.Us
 }
 
 func (t *tracingService) Find(ctx context.Context, id *brain.UserID) (user *brain.User, err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "db_request")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "get_user")
 	defer span.Finish()
 	defer func(begin time.Time) {
 		span.LogKV(
@@ -40,7 +40,7 @@ func (t *tracingService) Find(ctx context.Context, id *brain.UserID) (user *brai
 }
 
 func (t *tracingService) Update(ctx context.Context, id *brain.UserID, user brain.User) (_ *brain.User, err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "db_request")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "update_user")
 	defer span.Finish()
 	defer func(begin time.Time) {
 		span.LogKV(
@@ -52,7 +52,7 @@ func (t *tracingService) Update(ctx context.Context, id *brain.UserID, user brai
 }
 
 func (t *tracingService) Delete(ctx context.Context, id *brain.UserID) (err error) {
-	span, ctx := opentracing.StartSpanFromContext(ctx, "db_request")
+	span, ctx := opentracing.StartSpanFromContext(ctx, "delete_user")
 	defer span.Finish()
 	defer func(begin time.Time) {
 		span.LogKV(

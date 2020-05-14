@@ -1,6 +1,7 @@
 package inmem
 
 import (
+	"context"
 	"sync"
 
 	brain "github.com/anthontaylor/brain-debt"
@@ -18,7 +19,7 @@ func NewTopicRepository() brain.TopicRepository {
 	}
 }
 
-func (r *topicRepository) Add(id *brain.UserID, tName string) (*brain.TopicID, error) {
+func (r *topicRepository) Add(ctx context.Context, id *brain.UserID, tName string) (*brain.TopicID, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	topicID := brain.TopicID(uuid.New().String())
@@ -33,14 +34,14 @@ func (r *topicRepository) Add(id *brain.UserID, tName string) (*brain.TopicID, e
 	return &topicID, nil
 }
 
-func (r *topicRepository) Get(id *brain.UserID) ([]brain.Topic, error) {
+func (r *topicRepository) Get(ctx context.Context, id *brain.UserID) ([]brain.Topic, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	topics := r.topics[*id]
 	return topics, nil
 }
 
-func (r *topicRepository) Update(id *brain.UserID, topic *brain.Topic) (*brain.Topic, error) {
+func (r *topicRepository) Update(ctx context.Context, id *brain.UserID, topic *brain.Topic) (*brain.Topic, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if topics, ok := r.topics[*id]; ok {
@@ -55,7 +56,7 @@ func (r *topicRepository) Update(id *brain.UserID, topic *brain.Topic) (*brain.T
 	return nil, brain.ErrTopicNotFound
 }
 
-func (r *topicRepository) Delete(id *brain.UserID, topicID *brain.TopicID) error {
+func (r *topicRepository) Delete(ctx context.Context, id *brain.UserID, topicID *brain.TopicID) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if topics, ok := r.topics[*id]; ok {
