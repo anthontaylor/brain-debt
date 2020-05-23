@@ -19,3 +19,6 @@ docker:
 
 mock:
 	go generate ./...
+
+cqlsh:
+	docker exec -it brain-debt_cassandra_1 /opt/dse/bin/cqlsh
