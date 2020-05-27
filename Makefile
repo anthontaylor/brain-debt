@@ -22,3 +22,7 @@ mock:
 
 cqlsh:
 	docker exec -it brain-debt_cassandra_1 /opt/dse/bin/cqlsh
+
+migrate:
+	docker exec -i brain-debt_cassandra_1 /opt/dse/bin/cqlsh < ./migrations/keyspace.cql
+	migrate -path ./migrations -database cassandra://localhost:9042/brain_debt up

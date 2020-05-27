@@ -25,6 +25,9 @@ services:
 
   cassandra:
     image: "datastax/dse-server:6.8.0"
+    ports:
+      - "9042:9042"
+      - "9160:9160"
     environment:
       - DS_LICENSE=accept
       - BROADCAST_ADDRESS=127.0.0.1
