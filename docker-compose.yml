@@ -35,10 +35,3 @@ services:
     - IPC_LOCK
     ulimits:
       memlock: -1
-
-  studio:
-    image: "datastax/dse-studio"
-    environment:
-      - DS_LICENSE=accept
-    ports:
-      - 9091:9091

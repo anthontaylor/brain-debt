@@ -19,7 +19,8 @@ import (
 	jaegermetrics "github.com/uber/jaeger-lib/metrics"
 
 	brain "github.com/anthontaylor/brain-debt"
-	"github.com/anthontaylor/brain-debt/inmem"
+	"github.com/anthontaylor/brain-debt/cassandra"
+	//	"github.com/anthontaylor/brain-debt/inmem"
 	"github.com/anthontaylor/brain-debt/topic"
 	"github.com/anthontaylor/brain-debt/user"
 )
@@ -30,9 +31,10 @@ const (
 
 func main() {
 	var (
-		addr       = envString("PORT", defaultPort)
-		httpAddr   = flag.String("http.addr", ":"+addr, "HTTP listen address")
-		jaegerAddr = flag.String("jaeger", "jaeger:5775", "Jaeger host:port")
+		addr          = envString("PORT", defaultPort)
+		httpAddr      = flag.String("http.addr", ":"+addr, "HTTP listen address")
+		jaegerAddr    = flag.String("jaeger", "jaeger:5775", "Jaeger host:port")
+		cassandraAddr = flag.String("cassandra", "cassandra:9042", "Cassandra host")
 	)
 
 	flag.Parse()
@@ -72,13 +74,22 @@ func main() {
 		}
 	}
 
+	conn, err := cassandra.NewConnection(*cassandraAddr)
+	if err != nil {
+		level.Error(logger).Log("database", "cassandra", "err", err)
+		os.Exit(1)
+	} else {
+		level.Info(logger).Log("database", "cassandra", "address", *cassandraAddr)
+	}
+	defer conn.Close()
+
 	var (
 		users  brain.UserRepository
 		topics brain.TopicRepository
 	)
 
-	users = inmem.NewUserRepository()
-	topics = inmem.NewTopicRepository()
+	users = cassandra.NewUserRepository(conn)
+	topics = cassandra.NewTopicRepository(conn)
 
 	fieldKeys := []string{"method"}
 

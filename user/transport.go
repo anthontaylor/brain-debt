@@ -127,10 +127,12 @@ type errorer interface {
 // encode errors from business-logic
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	switch err {
-	case brain.ErrUnknownUser:
+	switch {
+	case errors.Is(err, brain.ErrUnknownUser):
 		w.WriteHeader(http.StatusNotFound)
-	case ErrInvalidArgument:
+	case errors.Is(err, brain.ErrInvalidUserID):
+		w.WriteHeader(http.StatusBadRequest)
+	case errors.Is(err, ErrInvalidArgument):
 		w.WriteHeader(http.StatusBadRequest)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

@@ -19,4 +19,8 @@ type UserRepository interface {
 	Delete(ctx context.Context, id *UserID) error
 }
 
-var ErrUnknownUser = errors.New("unknown user")
+var (
+	ErrUnknownUser   = errors.New("unknown user")
+	ErrInvalidUserID = errors.New("error invalid user id")
+	ErrAddingUser    = errors.New("error adding user")
+)

@@ -2,9 +2,14 @@ clean:
 	go fmt ./...
 	go vet ./...
 
-run:
+jaeger:
 	docker-compose up -d jaeger
-	go run cmd/main.go cmd/misc.go -jaeger=localhost:5775
+
+cassandra:
+	docker-compose up -d cassandra
+
+run:
+	go run cmd/main.go cmd/misc.go -jaeger=localhost:5775 -cassandra=localhost:9042
 
 test:
 	go test -race ./...

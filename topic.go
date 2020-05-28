@@ -20,3 +20,4 @@ type TopicRepository interface {
 }
 
 var ErrTopicNotFound = errors.New("topic not found")
+var ErrInvalidTopicID = errors.New("invalid topic id")
