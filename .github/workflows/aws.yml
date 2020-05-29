@@ -71,10 +71,11 @@ jobs:
         container-name: bd-container
         image: ${{ steps.build-image.outputs.image }}
 
-    - name: Deploy Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.bd-task-definition.outputs.task-definition }}
-        service: bd-service
-        cluster: bd-test-cluster
-        wait-for-service-stability: true
+    # --- Uncomment this step once I can successfully deploy my docker image on EC2 and talk to the API #
+    # - name: Deploy Amazon ECS task definition
+    #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #   with:
+    #     task-definition: ${{ steps.bd-task-definition.outputs.task-definition }}
+    #     service: bd-service
+    #     cluster: bd-test-cluster
+    #     wait-for-service-stability: true
