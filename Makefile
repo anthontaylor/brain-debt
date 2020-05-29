@@ -8,11 +8,14 @@ jaeger:
 cassandra:
 	docker-compose up -d cassandra
 
+build:
+	go build -v cmd/main.go cmd/misc.go
+
 run:
 	go run cmd/main.go cmd/misc.go -jaeger=localhost:5775 -cassandra=localhost:9042
 
 test:
-	go test -race ./...
+	go test -v -race ./...
 
 cover:
 	go test -race -cover ./... -coverprofile cover.out
