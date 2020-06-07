@@ -1,6 +1,12 @@
+-include secrets.mk
+
 clean:
 	go fmt ./...
 	go vet ./...
+
+download:
+	brew install golang-migrate
+	brew install terraform
 
 jaeger:
 	docker-compose up -d jaeger
@@ -30,6 +36,9 @@ mock:
 
 cqlsh:
 	docker exec -it brain-debt_cassandra_1 /opt/dse/bin/cqlsh
+
+cqlsh-dev:
+	cqlsh cassandra.us-west-2.amazonaws.com 9142 -u $(cql_dev_user) -p $(cql_dev_password) --ssl
 
 migrate:
 	docker exec -i brain-debt_cassandra_1 /opt/dse/bin/cqlsh < ./migrations/keyspace.cql
